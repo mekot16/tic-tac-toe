@@ -50,6 +50,7 @@ class Game extends React.Component {
             }],
             stepNumber: 0,
             xIsNext: true,
+            historyDesc: false,
         };
     }
 
@@ -91,11 +92,15 @@ class Game extends React.Component {
         return null;
     }
 
+    handleToggleClick() {
+        this.setState({historyDesc: !this.state.historyDesc});
+    }
+
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
-        const winLine = winner ? winner.line : [];
+        const winLine = winner && winner.player ? winner.line : [];
 
         const moves = history.map((step, move) => {
             const pos = this.findChange(move);
@@ -112,8 +117,10 @@ class Game extends React.Component {
         });
 
         let status;
-        if (winner) {
+        if (winner && winner.player) {
             status = 'Winner: ' + winner.player;
+        } else if (winner && winner.draw) {
+            status = 'Draw: No available moves';
         } else {
             status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
         }
@@ -128,8 +135,12 @@ class Game extends React.Component {
                     />
                 </div>
                 <div className="game-info">
-                    <div>{status}</div>
-                    <ol>{moves}</ol>
+                    <div>
+                        {status}&nbsp;&nbsp;
+                        <button onClick={() => this.handleToggleClick()}>Show {this.state.historyDesc ? "Asc" : "Desc"}</button>
+                    </div>
+
+                    <ol>{this.state.historyDesc ? moves.reverse() : moves}</ol>
                 </div>
             </div>
         );
@@ -147,13 +158,17 @@ function calculateWinner(squares) {
         [0, 4, 8],
         [2, 4, 6],
     ];
+    let isDraw = true;
     for (let i = 0; i < lines.length; i++) {
         const [a, b, c] = lines[i];
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
             return {player:squares[a], line:[a,b,c]};
         }
+        if (squares[a] === null) {
+            isDraw = false;
+        }
     }
-    return null;
+    return isDraw ? {draw:true} : null;
 }
 
 // ========================================
