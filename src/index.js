@@ -4,7 +4,7 @@ import './index.css';
 
 function Square(props) {
     return (
-        <button className="square" onClick={props.onClick}>
+        <button className={"square " + (props.isWinner+1 ? "winning-square" : "")} onClick={props.onClick}>
             {props.value}
         </button>
     );
@@ -12,10 +12,12 @@ function Square(props) {
   
 class Board extends React.Component {
     renderSquare(i) {
+        const isWinner = this.props.winLine.find((item) => item === i);
         return (
                 <Square 
                     key={i}
                     value={this.props.squares[i]}
+                    isWinner={isWinner}
                     onClick={() => this.props.onClick(i)}
                 />
         );
@@ -93,6 +95,7 @@ class Game extends React.Component {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
+        const winLine = winner ? winner.line : [];
 
         const moves = history.map((step, move) => {
             const pos = this.findChange(move);
@@ -110,7 +113,7 @@ class Game extends React.Component {
 
         let status;
         if (winner) {
-            status = 'Winner: ' + winner;
+            status = 'Winner: ' + winner.player;
         } else {
             status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
         }
@@ -120,6 +123,7 @@ class Game extends React.Component {
                 <div className="game-board">
                     <Board 
                         squares={current.squares}
+                        winLine={winLine}
                         onClick={(i) => this.handleClick(i)}
                     />
                 </div>
@@ -146,7 +150,7 @@ function calculateWinner(squares) {
     for (let i = 0; i < lines.length; i++) {
         const [a, b, c] = lines[i];
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-            return squares[a];
+            return {player:squares[a], line:[a,b,c]};
         }
     }
     return null;
